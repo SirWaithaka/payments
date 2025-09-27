@@ -10,17 +10,17 @@ import (
 	"github.com/SirWaithaka/gorequest/corehooks"
 )
 
-type AuthenticationRequestFunc func() (*request.Request, *ResponseAuthorization)
+type AuthenticationRequestFunc func() (*gorequest.Request, *ResponseAuthorization)
 
 type Config struct {
 	Endpoint string
-	Hooks    request.Hooks
-	LogLevel request.LogLevel
+	Hooks    gorequest.Hooks
+	LogLevel gorequest.LogLevel
 }
 
-func DefaultHooks() request.Hooks {
+func DefaultHooks() gorequest.Hooks {
 	// create default hooks
-	hooks := corehooks.DefaultHooks()
+	hooks := corehooks.Default()
 
 	// create client with default timeout of 5 seconds
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -39,7 +39,7 @@ func PasswordEncode(shortcode, passphrase, timestamp string) string {
 // to MPESA daraja service.
 type Client struct {
 	endpoint string
-	Hooks    request.Hooks
+	Hooks    gorequest.Hooks
 }
 
 func New(cfg Config) Client {
@@ -48,14 +48,14 @@ func New(cfg Config) Client {
 	}
 
 	// add log level to request config
-	cfg.Hooks.Build.PushFront(request.WithLogLevel(cfg.LogLevel))
+	cfg.Hooks.Build.PushFront(gorequest.WithLogLevel(cfg.LogLevel))
 
 	return Client{endpoint: cfg.Endpoint, Hooks: cfg.Hooks}
 }
 
 func (client Client) AuthenticationRequest(key, secret string) AuthenticationRequestFunc {
-	return func() (*request.Request, *ResponseAuthorization) {
-		op := &request.Operation{
+	return func() (*gorequest.Request, *ResponseAuthorization) {
+		op := gorequest.Operation{
 			Name:   "Authenticate",
 			Method: http.MethodGet,
 			Path:   EndpointAuthentication + "?grant_type=client_credentials",
@@ -63,35 +63,35 @@ func (client Client) AuthenticationRequest(key, secret string) AuthenticationReq
 
 		// create a client with a 40-second timeout
 		cl := &http.Client{Timeout: time.Second * 40}
-		cfg := request.Config{HTTPClient: cl, Endpoint: client.endpoint}
+		cfg := gorequest.Config{HTTPClient: cl, Endpoint: client.endpoint}
 
 		// default hooks
-		hooks := corehooks.DefaultHooks()
+		hooks := corehooks.Default()
 		hooks.Build.PushBackHook(corehooks.SetBasicAuth(key, secret))
 		hooks.Send.PushFrontHook(corehooks.LogHTTPRequest)
 		hooks.Unmarshal.PushBackHook(ResponseDecoder)
 
 		output := &ResponseAuthorization{}
-		req := request.New(cfg, hooks, nil, op, nil, output)
+		req := gorequest.New(cfg, op, hooks, nil, nil, output)
 
 		return req, output
 	}
 }
 
-func (client Client) C2BExpressRequest(input RequestC2BExpress, opts ...request.Option) (*request.Request, *ResponseC2BExpress) {
-	op := &request.Operation{
+func (client Client) C2BExpressRequest(input RequestC2BExpress, opts ...gorequest.Option) (*gorequest.Request, *ResponseC2BExpress) {
+	op := gorequest.Operation{
 		Name:   OperationC2BExpress,
 		Method: http.MethodPost,
 		Path:   EndpointC2bExpress,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	output := ResponseC2BExpress{}
-	req := request.New(cfg, client.Hooks, nil, op, input, &output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, &output)
 	req.ApplyOptions(opts...)
 
 	return req, &output
@@ -108,20 +108,20 @@ func (client Client) C2BExpress(ctx context.Context, payload RequestC2BExpress) 
 	return *out, nil
 }
 
-func (client Client) ReversalRequest(input RequestReversal, opts ...request.Option) (*request.Request, *ResponseReversal) {
-	op := &request.Operation{
+func (client Client) ReversalRequest(input RequestReversal, opts ...gorequest.Option) (*gorequest.Request, *ResponseReversal) {
+	op := gorequest.Operation{
 		Name:   OperationReversal,
 		Method: http.MethodPost,
 		Path:   EndpointReversal,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	output := &ResponseReversal{}
-	req := request.New(cfg, client.Hooks, nil, op, input, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, output)
 	req.ApplyOptions(opts...)
 
 	return req, output
@@ -138,20 +138,20 @@ func (client Client) Reverse(ctx context.Context, payload RequestReversal) (Resp
 	return *out, nil
 }
 
-func (client Client) B2CRequest(input RequestB2C, opts ...request.Option) (*request.Request, *ResponseB2C) {
-	op := &request.Operation{
+func (client Client) B2CRequest(input RequestB2C, opts ...gorequest.Option) (*gorequest.Request, *ResponseB2C) {
+	op := gorequest.Operation{
 		Name:   OperationB2C,
 		Method: http.MethodPost,
 		Path:   EndpointB2cPayment,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	output := &ResponseB2C{}
-	req := request.New(cfg, client.Hooks, nil, op, input, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, output)
 	req.ApplyOptions(opts...)
 
 	return req, output
@@ -168,20 +168,20 @@ func (client Client) B2C(ctx context.Context, payload RequestB2C) (ResponseB2C, 
 	return *out, nil
 }
 
-func (client Client) B2BRequest(input RequestB2B, opts ...request.Option) (*request.Request, *ResponseB2B) {
-	op := &request.Operation{
+func (client Client) B2BRequest(input RequestB2B, opts ...gorequest.Option) (*gorequest.Request, *ResponseB2B) {
+	op := gorequest.Operation{
 		Name:   OperationB2B,
 		Method: http.MethodPost,
 		Path:   EndpointB2bPayment,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	output := &ResponseB2B{}
-	req := request.New(cfg, client.Hooks, nil, op, input, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, output)
 	req.ApplyOptions(opts...)
 
 	return req, output
@@ -198,20 +198,20 @@ func (client Client) B2B(ctx context.Context, payload RequestB2B) (ResponseB2B, 
 	return *out, nil
 }
 
-func (client Client) TransactionStatusRequest(input RequestTransactionStatus, opts ...request.Option) (*request.Request, *ResponseTransactionStatus) {
-	op := &request.Operation{
+func (client Client) TransactionStatusRequest(input RequestTransactionStatus, opts ...gorequest.Option) (*gorequest.Request, *ResponseTransactionStatus) {
+	op := gorequest.Operation{
 		Name:   OperationTransactionStatus,
 		Method: http.MethodPost,
 		Path:   EndpointTransactionStatus,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	output := &ResponseTransactionStatus{}
-	req := request.New(cfg, client.Hooks, nil, op, input, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, output)
 	req.ApplyOptions(opts...)
 
 	return req, output
@@ -228,20 +228,20 @@ func (client Client) TransactionStatus(ctx context.Context, payload RequestTrans
 	return *out, nil
 }
 
-func (client Client) BalanceRequest(input RequestBalance, opts ...request.Option) (*request.Request, *ResponseBalance) {
-	op := &request.Operation{
+func (client Client) BalanceRequest(input RequestBalance, opts ...gorequest.Option) (*gorequest.Request, *ResponseBalance) {
+	op := gorequest.Operation{
 		Name:   OperationBalance,
 		Method: http.MethodPost,
 		Path:   EndpointAccountBalance,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	output := &ResponseBalance{}
-	req := request.New(cfg, client.Hooks, nil, op, input, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, output)
 	req.ApplyOptions(opts...)
 
 	return req, output
@@ -258,20 +258,20 @@ func (client Client) Balance(ctx context.Context, payload RequestBalance) (Respo
 	return *out, nil
 }
 
-func (client Client) QueryOrgInfoRequest(input RequestOrgInfoQuery, opts ...request.Option) (*request.Request, *ResponseOrgInfoQuery) {
-	op := &request.Operation{
+func (client Client) QueryOrgInfoRequest(input RequestOrgInfoQuery, opts ...gorequest.Option) (*gorequest.Request, *ResponseOrgInfoQuery) {
+	op := gorequest.Operation{
 		Name:   OperationQueryOrgInfo,
 		Method: http.MethodPost,
 		Path:   EndpointQueryOrgInfo,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	output := &ResponseOrgInfoQuery{}
-	req := request.New(cfg, client.Hooks, nil, op, input, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, output)
 	req.ApplyOptions(opts...)
 
 	return req, output

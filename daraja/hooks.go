@@ -12,10 +12,10 @@ import (
 
 // HTTPClient creates an instance of http.Client configured
 // for daraja service.
-func HTTPClient(client *http.Client) request.Hook {
-	return request.Hook{
+func HTTPClient(client *http.Client) gorequest.Hook {
+	return gorequest.Hook{
 		Name: "daraja.HTTPClient",
-		Fn: func(r *request.Request) {
+		Fn: func(r *gorequest.Request) {
 			if client == nil {
 				client = &http.Client{Timeout: 30 * time.Second}
 			}
@@ -31,12 +31,12 @@ func (r errResponse) Error() string {
 }
 
 // ResponseDecoder parse the http.Response body into the property
-// request.Request.Data, if the status code is successful
+// gorequest.gorequest.Data, if the status code is successful
 // Otherwise for failed requests, it will parse the error response
-// into the property request.Request.Error
-var ResponseDecoder = request.Hook{
+// into the property gorequest.gorequest.Error
+var ResponseDecoder = gorequest.Hook{
 	Name: "daraja.ResponseDecoder",
-	Fn: func(r *request.Request) {
+	Fn: func(r *gorequest.Request) {
 		// response formats for non-200 status codes follow the same format
 		if r.Response.StatusCode != http.StatusOK {
 			response := &errResponse{}
@@ -54,13 +54,13 @@ var ResponseDecoder = request.Hook{
 	},
 }
 
-func Authenticate(reqFn AuthenticationRequestFunc) request.Hook {
+func Authenticate(reqFn AuthenticationRequestFunc) gorequest.Hook {
 
 	cache := NewCache[string]()
 
-	return request.Hook{
+	return gorequest.Hook{
 		Name: "daraja.Authenticate",
-		Fn: func(r *request.Request) {
+		Fn: func(r *gorequest.Request) {
 			// make request to authenticate if token cache is empty
 			if cache.Get() == "" {
 				req, out := reqFn()

@@ -11,13 +11,13 @@ import (
 	"github.com/SirWaithaka/gorequest/corehooks"
 )
 
-func DefaultHooks() request.Hooks {
+func DefaultHooks() gorequest.Hooks {
 	// create default hooks
-	hooks := corehooks.DefaultHooks()
+	hooks := corehooks.Default()
 
 	// create client with default timeout of 5 seconds
 	client := &http.Client{Timeout: 5 * time.Second}
-	hooks.Build.PushFront(request.WithHTTPClient(client))
+	hooks.Build.PushFront(gorequest.WithHTTPClient(client))
 	hooks.Build.PushBackHook(corehooks.EncodeRequestBody)
 	hooks.Unmarshal.PushBackHook(ResponseDecoder)
 	return hooks
@@ -26,8 +26,8 @@ func DefaultHooks() request.Hooks {
 
 type Config struct {
 	Endpoint string
-	Hooks    request.Hooks
-	LogLevel request.LogLevel
+	Hooks    gorequest.Hooks
+	LogLevel gorequest.LogLevel
 }
 
 func New(cfg Config) Client {
@@ -36,18 +36,18 @@ func New(cfg Config) Client {
 	}
 
 	// add log level to request config
-	cfg.Hooks.Build.PushFront(request.WithLogLevel(cfg.LogLevel))
+	cfg.Hooks.Build.PushFront(gorequest.WithLogLevel(cfg.LogLevel))
 
 	return Client{endpoint: cfg.Endpoint, Hooks: cfg.Hooks}
 }
 
 type Client struct {
 	endpoint string
-	Hooks    request.Hooks
+	Hooks    gorequest.Hooks
 }
 
-func (client Client) AuthenticationRequest(clientID, secret string) (*request.Request, *ResponseAuthentication) {
-	op := &request.Operation{
+func (client Client) AuthenticationRequest(clientID, secret string) (*gorequest.Request, *ResponseAuthentication) {
+	op := gorequest.Operation{
 		Name:   OperationAuthenticate,
 		Method: http.MethodPost,
 		Path:   EndpointAuthentication,
@@ -60,40 +60,40 @@ func (client Client) AuthenticationRequest(clientID, secret string) (*request.Re
 
 	// create a client with a 30-second timeout
 	cl := &http.Client{Timeout: time.Second * 30}
-	cfg := request.Config{HTTPClient: cl, Endpoint: client.endpoint}
+	cfg := gorequest.Config{HTTPClient: cl, Endpoint: client.endpoint}
 
 	// default hooks
-	hooks := corehooks.DefaultHooks()
-	hooks.Build.PushFront(request.WithRequestHeader("Content-Type", "application/x-www-form-urlencoded"))
+	hooks := corehooks.Default()
+	hooks.Build.PushFront(gorequest.WithRequestHeader("Content-Type", "application/x-www-form-urlencoded"))
 	hooks.Send.PushFrontHook(corehooks.LogHTTPRequest)
 	hooks.Unmarshal.PushBackHook(ResponseDecoder)
 
 	input := strings.NewReader(data.Encode())
 	output := &ResponseAuthentication{}
-	req := request.New(cfg, hooks, nil, op, input, output)
+	req := gorequest.New(cfg, op, hooks, nil, input, output)
 
 	return req, output
 }
 
-func (client Client) PaymentRequest(orgID string, payload RequestPayment, opts ...request.Option) (*request.Request, *ResponsePayment) {
-	op := &request.Operation{
+func (client Client) PaymentRequest(orgID string, payload RequestPayment, opts ...gorequest.Option) (*gorequest.Request, *ResponsePayment) {
+	op := gorequest.Operation{
 		Name:   OperationPayment,
 		Method: http.MethodPost,
 		Path:   fmt.Sprintf(EndpointPayments, orgID),
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	output := &ResponsePayment{}
-	req := request.New(cfg, client.Hooks, nil, op, payload, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, payload, output)
 	req.ApplyOptions(opts...)
 
 	return req, output
 
 }
 
-func (client Client) TransactionStatusRequest(orgID, trackingID, shortCode string, opts ...request.Option) (*request.Request, *ResponseTransactionStatus) {
-	op := &request.Operation{
+func (client Client) TransactionStatusRequest(orgID, trackingID, shortCode string, opts ...gorequest.Option) (*gorequest.Request, *ResponseTransactionStatus) {
+	op := gorequest.Operation{
 		Name:   OperationTransactionStatus,
 		Method: http.MethodGet,
 		Path:   fmt.Sprintf(EndpointTransactionStatus, orgID, trackingID),
@@ -104,10 +104,10 @@ func (client Client) TransactionStatusRequest(orgID, trackingID, shortCode strin
 	uParams.Set("shortCode", shortCode)
 	op.Path = op.Path + "?" + uParams.Encode()
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	output := &ResponseTransactionStatus{}
-	req := request.New(cfg, client.Hooks, nil, op, nil, output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, nil, output)
 	req.ApplyOptions(opts...)
 
 	return req, output

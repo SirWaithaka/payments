@@ -22,8 +22,8 @@ func signer(date, secret []byte) string {
 	return url.QueryEscape(b64)
 }
 
-func DefaultHooks() request.Hooks {
-	hooks := corehooks.DefaultHooks()
+func DefaultHooks() gorequest.Hooks {
+	hooks := corehooks.Default()
 
 	hooks.Build.PushBackHook(corehooks.EncodeRequestBody)
 	hooks.Unmarshal.PushBackHook(ResponseDecoder)
@@ -32,13 +32,13 @@ func DefaultHooks() request.Hooks {
 
 type Config struct {
 	Endpoint string
-	Hooks    request.Hooks
-	LogLevel request.LogLevel
+	Hooks    gorequest.Hooks
+	LogLevel gorequest.LogLevel
 }
 
 type Client struct {
 	endpoint string
-	Hooks    request.Hooks
+	Hooks    gorequest.Hooks
 }
 
 func New(cfg Config) Client {
@@ -47,40 +47,40 @@ func New(cfg Config) Client {
 	}
 
 	// add log level to request config
-	cfg.Hooks.Build.PushFront(request.WithLogLevel(cfg.LogLevel))
-	cfg.Hooks.Build.PushFront(request.WithRequestHeader("accept", "application/vnd.api+json"))
-	cfg.Hooks.Build.PushFront(request.WithRequestHeader("content-type", "application/vnd.api+json"))
+	cfg.Hooks.Build.PushFront(gorequest.WithLogLevel(cfg.LogLevel))
+	cfg.Hooks.Build.PushFront(gorequest.WithRequestHeader("accept", "application/vnd.api+json"))
+	cfg.Hooks.Build.PushFront(gorequest.WithRequestHeader("content-type", "application/vnd.api+json"))
 
 	return Client{endpoint: cfg.Endpoint, Hooks: cfg.Hooks}
 }
 
-func (client Client) VerifyAuth(opts ...request.Option) (*request.Request, []byte) {
-	op := &request.Operation{
+func (client Client) VerifyAuth(opts ...gorequest.Option) (*gorequest.Request, []byte) {
+	op := gorequest.Operation{
 		Name:   OperationAuthCheck,
 		Method: http.MethodGet,
 		Path:   EndpointAuthCheck,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	var output []byte
-	req := request.New(cfg, client.Hooks, nil, op, nil, &output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, nil, &output)
 	req.ApplyOptions(opts...)
 
 	return req, output
 }
 
-func (client Client) ChargeRequest(input RequestCharge, ref string, opts ...request.Option) (*request.Request, *ResponseDefault) {
-	op := &request.Operation{
+func (client Client) ChargeRequest(input RequestCharge, ref string, opts ...gorequest.Option) (*gorequest.Request, *ResponseDefault) {
+	op := gorequest.Operation{
 		Name:   OperationCharge,
 		Method: http.MethodPost,
 		Path:   EndpointCharge,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// append to request options
-	//opts = append(opts, request.WithRequestHeader("Content-Type", "application/json"))
+	//opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
 
 	// build actual payload
 	payload := RequestDefault[RequestCharge]{
@@ -92,20 +92,20 @@ func (client Client) ChargeRequest(input RequestCharge, ref string, opts ...requ
 	}
 
 	output := ResponseDefault{}
-	req := request.New(cfg, client.Hooks, nil, op, payload, &output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, payload, &output)
 	req.ApplyOptions(opts...)
 
 	return req, &output
 }
 
-func (client Client) PayoutRequest(input RequestPayout, ref string, opts ...request.Option) (*request.Request, *ResponseDefault) {
-	op := &request.Operation{
+func (client Client) PayoutRequest(input RequestPayout, ref string, opts ...gorequest.Option) (*gorequest.Request, *ResponseDefault) {
+	op := gorequest.Operation{
 		Name:   OperationPayout,
 		Method: http.MethodPost,
 		Path:   EndpointPayout,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// build actual payload
 	payload := RequestDefault[RequestPayout]{
@@ -117,20 +117,20 @@ func (client Client) PayoutRequest(input RequestPayout, ref string, opts ...requ
 	}
 
 	output := ResponseDefault{}
-	req := request.New(cfg, client.Hooks, nil, op, payload, &output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, payload, &output)
 	req.ApplyOptions(opts...)
 
 	return req, &output
 }
 
-func (client Client) TransferRequest(input RequestTransfer, ref string, opts ...request.Option) (*request.Request, *ResponseDefault) {
-	op := &request.Operation{
+func (client Client) TransferRequest(input RequestTransfer, ref string, opts ...gorequest.Option) (*gorequest.Request, *ResponseDefault) {
+	op := gorequest.Operation{
 		Name:   OperationTransfer,
 		Method: http.MethodPost,
 		Path:   EndpointTransfer,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// build actual payload
 	payload := RequestDefault[RequestTransfer]{
@@ -142,20 +142,20 @@ func (client Client) TransferRequest(input RequestTransfer, ref string, opts ...
 	}
 
 	output := ResponseDefault{}
-	req := request.New(cfg, client.Hooks, nil, op, payload, &output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, payload, &output)
 	req.ApplyOptions(opts...)
 
 	return req, &output
 }
 
-func (client Client) BalanceRequest(input RequestAccountBalance, ref string, opts ...request.Option) (*request.Request, *ResponseDefault) {
-	op := &request.Operation{
+func (client Client) BalanceRequest(input RequestAccountBalance, ref string, opts ...gorequest.Option) (*gorequest.Request, *ResponseDefault) {
+	op := gorequest.Operation{
 		Name:   OperationBalance,
 		Method: http.MethodPost,
 		Path:   EndpointBalance,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// build actual payload
 	payload := RequestDefault[RequestAccountBalance]{
@@ -167,20 +167,20 @@ func (client Client) BalanceRequest(input RequestAccountBalance, ref string, opt
 	}
 
 	output := ResponseDefault{}
-	req := request.New(cfg, client.Hooks, nil, op, payload, &output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, payload, &output)
 	req.ApplyOptions(opts...)
 
 	return req, &output
 }
 
-func (client Client) TransactionSearchRequest(input RequestTransactionStatus, ref string, opts ...request.Option) (*request.Request, *ResponseDefault) {
-	op := &request.Operation{
+func (client Client) TransactionSearchRequest(input RequestTransactionStatus, ref string, opts ...gorequest.Option) (*gorequest.Request, *ResponseDefault) {
+	op := gorequest.Operation{
 		Name:   OperationTransactionSearch,
 		Method: http.MethodPost,
 		Path:   EndpointTransactionSearch,
 	}
 
-	cfg := request.Config{Endpoint: client.endpoint}
+	cfg := gorequest.Config{Endpoint: client.endpoint}
 
 	// build actual payload
 	payload := RequestDefault[RequestTransactionStatus]{
@@ -192,7 +192,7 @@ func (client Client) TransactionSearchRequest(input RequestTransactionStatus, re
 	}
 
 	output := ResponseDefault{}
-	req := request.New(cfg, client.Hooks, nil, op, payload, &output)
+	req := gorequest.New(cfg, op, client.Hooks, nil, payload, &output)
 	req.ApplyOptions(opts...)
 
 	return req, &output

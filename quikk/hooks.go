@@ -12,8 +12,8 @@ import (
 )
 
 // Sign is a build hook that generates a signature for the request
-func Sign(key, secret string) request.Hook {
-	return request.Hook{Name: "quikk.SignRequest", Fn: func(r *request.Request) {
+func Sign(key, secret string) gorequest.Hook {
+	return gorequest.Hook{Name: "quikk.SignRequest", Fn: func(r *gorequest.Request) {
 		// get the current time and sign it
 		now := time.Now().UTC().Format(time.RFC1123)
 		signature := signer([]byte(now), []byte(secret))
@@ -33,11 +33,11 @@ func (r errorResponse) Error() string {
 	return fmt.Sprintf("<%s> %s", r.Errors[0].Status, r.Errors[0].Title)
 }
 
-// ResponseDecoder decodes the response body into the Data field of request.Request if the status code
+// ResponseDecoder decodes the response body into the Data field of gorequest.Request if the status code
 // is 200. Otherwise, it decodes into the ErrorResponse model
-var ResponseDecoder = request.Hook{
+var ResponseDecoder = gorequest.Hook{
 	Name: "quikk.ResponseDecoder",
-	Fn: func(r *request.Request) {
+	Fn: func(r *gorequest.Request) {
 		// response formats for non-200 status codes follow the same format
 		if r.Response.StatusCode != http.StatusOK {
 			statusError := fmt.Errorf("status code: %d", r.Response.StatusCode)
