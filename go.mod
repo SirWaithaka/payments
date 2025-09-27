@@ -3,7 +3,7 @@ module github.com/SirWaithaka/payments
 go 1.24.0
 
 require (
-	github.com/SirWaithaka/gorequest v1.0.0
+	github.com/SirWaithaka/gorequest v1.1.0
 	github.com/json-iterator/go v1.1.12
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/rs/xid v1.6.0
