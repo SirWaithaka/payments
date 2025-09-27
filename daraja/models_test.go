@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestResponseCode_MarshalJSON(t *testing.T) {
@@ -30,16 +31,11 @@ func TestResponseCode_MarshalJSON(t *testing.T) {
 	for _, tc := range tcs {
 		var buf bytes.Buffer
 		err := jsoniter.NewEncoder(&buf).Encode(tc.input)
-		if err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
+		assert.NoError(t, err)
 
 		result := bytes.TrimRight(buf.Bytes(), "\n")
 
-		if string(result) != tc.expected {
-			t.Errorf("\nexp %s\ngot %s\n", tc.expected, string(result))
-		}
-
+		assert.Equal(t, tc.expected, string(result))
 	}
 
 }
@@ -64,12 +60,9 @@ func TestResponseCode_MarshalText(t *testing.T) {
 
 	for _, tc := range tcs {
 		result, err := jsoniter.Marshal(&tc.input)
-		if err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
-		if string(result) != tc.expected {
-			t.Errorf("expected %s, got %s", tc.expected, string(result))
-		}
+
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expected, string(result))
 	}
 
 }
@@ -93,14 +86,10 @@ func TestResponseCode_UnmarshalText(t *testing.T) {
 
 	for _, tc := range tcs {
 		var result ts
-		if err := jsoniter.Unmarshal([]byte(tc.input), &result); err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
+		err := jsoniter.Unmarshal([]byte(tc.input), &result)
 
-		if result.ResCode != tc.expected {
-			t.Errorf("expected %v, got %v", tc.expected, result.ResCode)
-		}
-
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expected, result.ResCode)
 	}
 
 }
@@ -125,23 +114,15 @@ func TestResponseCode_UnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tcs {
 		var result ts
-		if err := jsoniter.NewDecoder(strings.NewReader(tc.input)).Decode(&result); err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
+		err := jsoniter.NewDecoder(strings.NewReader(tc.input)).Decode(&result)
 
-		if result.ResCode != tc.expected {
-			t.Errorf("expected %v, got %v", tc.expected, result.ResCode)
-		}
-
+		assert.NoError(t, err)
+		assert.Equal(t, tc.expected, result.ResCode)
 	}
 
 }
 
 func TestToResponseCode(t *testing.T) {
-
 	result := ToResponseCode(InvalidGrantType.String())
-	if result != InvalidGrantType {
-		t.Errorf("expected %v, got %v", InvalidGrantType, result)
-	}
-
+	assert.Equal(t, InvalidGrantType, result)
 }

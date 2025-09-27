@@ -52,9 +52,8 @@ func TestClient_AuthenticationRequest(t *testing.T) {
 		req.WithContext(t.Context())
 
 		// make request to mock server
-		if err := req.Send(); err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
+		err := req.Send()
+		assert.NoError(t, err)
 
 		assert.Equal(t, res.AccessToken, accessToken)
 
@@ -79,10 +78,8 @@ func TestClient_AuthenticationRequest(t *testing.T) {
 		req.WithContext(t.Context())
 
 		// make request to mock server
-		if err := req.Send(); err == nil {
-			t.Errorf("expected non-nil error, got nil")
-		}
-		t.Log(req.Error)
+		err := req.Send()
+		assert.Error(t, err)
 
 		// expect res to be empty
 		assert.Equal(t, res, &daraja.ResponseAuthorization{})
@@ -301,10 +298,8 @@ func TestClient_C2BExpress(t *testing.T) {
 
 	client := daraja.New(daraja.Config{Endpoint: server.URL})
 	res, err := client.C2BExpress(t.Context(), daraja.RequestC2BExpress{})
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.ResponseCode, daraja.SuccessSubmission)
 }
 
@@ -322,10 +317,8 @@ func TestClient_B2C(t *testing.T) {
 
 	client := daraja.New(daraja.Config{Endpoint: server.URL})
 	res, err := client.B2C(t.Context(), daraja.RequestB2C{})
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.ResponseCode, daraja.SuccessSubmission)
 }
 
@@ -343,10 +336,8 @@ func TestClient_B2B(t *testing.T) {
 
 	client := daraja.New(daraja.Config{Endpoint: server.URL})
 	res, err := client.B2B(t.Context(), daraja.RequestB2B{})
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.ResponseCode, daraja.SuccessSubmission)
 }
 
@@ -364,10 +355,8 @@ func TestClient_Reverse(t *testing.T) {
 
 	client := daraja.New(daraja.Config{Endpoint: server.URL})
 	res, err := client.Reverse(t.Context(), daraja.RequestReversal{})
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.ResponseCode, daraja.SuccessSubmission)
 }
 
@@ -385,10 +374,8 @@ func TestClient_TransactionStatus(t *testing.T) {
 
 	client := daraja.New(daraja.Config{Endpoint: server.URL})
 	res, err := client.TransactionStatus(t.Context(), daraja.RequestTransactionStatus{})
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.ResponseCode, daraja.SuccessSubmission)
 }
 
@@ -406,10 +393,8 @@ func TestClient_Balance(t *testing.T) {
 
 	client := daraja.New(daraja.Config{Endpoint: server.URL})
 	res, err := client.Balance(t.Context(), daraja.RequestBalance{})
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.ResponseCode, daraja.SuccessSubmission)
 }
 
@@ -427,9 +412,7 @@ func TestClient_QueryOrgInfo(t *testing.T) {
 
 	client := daraja.New(daraja.Config{Endpoint: server.URL})
 	res, err := client.QueryOrgInfo(t.Context(), daraja.RequestOrgInfoQuery{})
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.ResponseCode, daraja.SuccessSubmission)
 }

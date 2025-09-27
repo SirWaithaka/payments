@@ -86,9 +86,7 @@ func TestClient_TransactionSearch(t *testing.T) {
 
 	client := quikk2.New(quikk2.Config{Endpoint: server.URL})
 	res, err := client.TransactionSearch(t.Context(), quikk2.RequestTransactionStatus{}, xid.New().String())
-	if err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
 
+	assert.NoError(t, err)
 	assert.Equal(t, res.Data.Attributes.ResourceID, resourceID)
 }

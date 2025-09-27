@@ -46,9 +46,7 @@ func TestAuthenticate(t *testing.T) {
 
 		// attempt request
 		_, err := client.QueryOrgInfo(t.Context(), RequestOrgInfoQuery{})
-		if err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
+		assert.NoError(t, err)
 	})
 
 	t.Run("test that it reuses cached token for subsequent requests", func(t *testing.T) {
@@ -84,15 +82,11 @@ func TestAuthenticate(t *testing.T) {
 
 		// attempt request 1
 		_, err := client.QueryOrgInfo(t.Context(), RequestOrgInfoQuery{})
-		if err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
+		assert.NoError(t, err)
 
 		// attempt request 2
 		_, err = client.QueryOrgInfo(t.Context(), RequestOrgInfoQuery{})
-		if err != nil {
-			t.Errorf("expected nil error, got %v", err)
-		}
+		assert.NoError(t, err)
 
 		// assert that authentication endpoint was called only once
 		assert.Equal(t, 1, authCalls)
@@ -120,16 +114,14 @@ func TestResponseDecoder(t *testing.T) {
 
 	t.Run("test non-200 response", func(t *testing.T) {
 		// build request
-		cfg := request.Config{Endpoint: server.URL}
-		op := &request.Operation{Name: "test", Path: "/error"}
-		hooks := corehooks.DefaultHooks()
+		cfg := gorequest.Config{Endpoint: server.URL}
+		op := gorequest.Operation{Name: "test", Path: "/error"}
+		hooks := corehooks.Default()
 		hooks.Unmarshal.PushFrontHook(ResponseDecoder)
-		req := request.New(cfg, hooks, nil, op, nil, nil)
+		req := gorequest.New(cfg, op, hooks, nil, nil, nil)
 
 		err := req.Send()
-		if err == nil {
-			t.Errorf("expected error, got nil")
-		}
+		assert.NotNil(t, err)
 
 		// err should be convertible to client_daraja.ErrorResponse
 		v := reflect.ValueOf(err)

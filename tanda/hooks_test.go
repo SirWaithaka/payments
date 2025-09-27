@@ -289,7 +289,7 @@ func TestPaymentParametersValidator(t *testing.T) {
 	for _, tt := range testcases {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a mock request
-			req := &request.Request{
+			req := &gorequest.Request{
 				Params: tt.params,
 			}
 
@@ -383,14 +383,9 @@ func TestParameterIDs(t *testing.T) {
 		result = append(result, id)
 	}
 
-	if len(result) != len(expected) {
-		t.Errorf("Expected %d IDs, got %d", len(expected), len(result))
-		return
-	}
+	assert.Equal(t, len(expected), len(result))
 
 	for i, id := range expected {
-		if result[i] != id {
-			t.Errorf("Expected ID %s at index %d, got %s", id, i, result[i])
-		}
+		assert.Equalf(t, id, result[i], "Expected ID %s at index %d, got %s", id, i, result[i])
 	}
 }

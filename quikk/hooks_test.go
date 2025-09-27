@@ -32,16 +32,15 @@ func TestSign(t *testing.T) {
 	secret := "fake_secret"
 
 	// build a test request
-	cfg := request.Config{Endpoint: server.URL}
+	cfg := gorequest.Config{Endpoint: server.URL}
 	hooks := DefaultHooks()
 	hooks.Build.PushFrontHook(Sign(key, secret)) // add sign hook
 	hooks.Unmarshal.Clear()                      // since it's a test, remove any response decoder
-	op := &request.Operation{Name: "test", Path: "/test"}
-	req := request.New(cfg, hooks, nil, op, nil, nil)
+	op := gorequest.Operation{Name: "test", Path: "/test"}
+	req := gorequest.New(cfg, op, hooks, nil, nil, nil)
 
-	if err := req.Send(); err != nil {
-		t.Errorf("expected nil error, got %v", err)
-	}
+	err := req.Send()
+	assert.NoError(t, err)
 
 }
 
@@ -71,13 +70,13 @@ func TestResponseDecoder(t *testing.T) {
 	t.Run("test that it decodes response in success status", func(t *testing.T) {
 		// build a test request
 		// add response decoder hook
-		hooks := corehooks.DefaultHooks()
+		hooks := corehooks.Default()
 		hooks.Unmarshal.PushFrontHook(ResponseDecoder)
 		// build request
-		cfg := request.Config{Endpoint: server.URL}
-		op := &request.Operation{Name: "test", Path: "/success"}
+		cfg := gorequest.Config{Endpoint: server.URL}
+		op := gorequest.Operation{Name: "test", Path: "/success"}
 		data := &successResponse{}
-		req := request.New(cfg, hooks, nil, op, nil, data)
+		req := gorequest.New(cfg, op, hooks, nil, nil, data)
 
 		if err := req.Send(); err != nil {
 			t.Errorf("expected nil error, got %v", err)
@@ -90,16 +89,15 @@ func TestResponseDecoder(t *testing.T) {
 	t.Run("test that it decodes response in error status ", func(t *testing.T) {
 		// build a test request
 		// add response decoder hook
-		hooks := corehooks.DefaultHooks()
+		hooks := corehooks.Default()
 		hooks.Unmarshal.PushFrontHook(ResponseDecoder)
 		// build request
-		cfg := request.Config{Endpoint: server.URL}
-		op := &request.Operation{Name: "test", Path: "/error"}
-		req := request.New(cfg, hooks, nil, op, nil, nil)
+		cfg := gorequest.Config{Endpoint: server.URL}
+		op := gorequest.Operation{Name: "test", Path: "/error"}
+		req := gorequest.New(cfg, op, hooks, nil, nil, nil)
 
-		if err := req.Send(); err == nil {
-			t.Errorf("expected error, got nil")
-		}
+		err := req.Send()
+		assert.Error(t, err)
 
 	})
 }
