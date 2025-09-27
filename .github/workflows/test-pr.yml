@@ -1,0 +1,23 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Test PR
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [ "opened", "synchronize", "reopened" ]
+
+jobs:
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    container: golang:1.24
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Test
+      run: make test.cover
