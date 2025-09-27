@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -5,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/SirWaithaka/payments/clients/daraja"
+	"github.com/SirWaithaka/payments/daraja"
 )
 
 type ShortCodeConfig struct {
