@@ -108,6 +108,36 @@ func (client Client) C2BExpress(ctx context.Context, payload RequestC2BExpress) 
 	return *out, nil
 }
 
+func (client Client) C2BQueryRequest(input RequestC2BExpressQuery, opts ...gorequest.Option) (*gorequest.Request, *ResponseC2BExpressQuery) {
+	op := gorequest.Operation{
+		Name:   OperationC2BQuery,
+		Method: http.MethodPost,
+		Path:   EndpointC2bExpressQuery,
+	}
+
+	cfg := gorequest.Config{Endpoint: client.endpoint}
+
+	// append to request options
+	opts = append(opts, gorequest.WithRequestHeader("Content-Type", "application/json"))
+
+	output := &ResponseC2BExpressQuery{}
+	req := gorequest.New(cfg, op, client.Hooks, nil, input, output)
+	req.ApplyOptions(opts...)
+
+	return req, output
+}
+
+func (client Client) C2BQuery(ctx context.Context, payload RequestC2BExpressQuery) (ResponseC2BExpressQuery, error) {
+	req, out := client.C2BQueryRequest(payload)
+	req.WithContext(ctx)
+
+	if err := req.Send(); err != nil {
+		return ResponseC2BExpressQuery{}, err
+	}
+
+	return *out, nil
+}
+
 func (client Client) ReversalRequest(input RequestReversal, opts ...gorequest.Option) (*gorequest.Request, *ResponseReversal) {
 	op := gorequest.Operation{
 		Name:   OperationReversal,
